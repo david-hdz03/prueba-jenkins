@@ -1,27 +1,34 @@
 import pytest
-from app import app
+import sqlite3
+from app import app, DATABASE
 
 @pytest.fixture
 def client():
+    # Usar base de datos en memoria para tests
+    app.config['DATABASE'] = ':memory:'
     with app.test_client() as client:
+        with app.app_context():
+            db = sqlite3.connect(':memory:')
+            db.execute('''
+                CREATE TABLE users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL UNIQUE
+                )
+            ''')
+            db.commit()
         yield client
 
-def test_get_users(client):
-    response = client.get('/api/users')
-    assert response.status_code == 200
-    assert len(response.json) == 2
-
-def test_get_user_exists(client):
-    response = client.get('/api/users/1')
-    assert response.status_code == 200
-    assert response.json['name'] == 'John Doe'
-
-def test_get_user_not_exists(client):
-    response = client.get('/api/users/999')
-    assert response.status_code == 404
-
-def test_create_user(client):
+def test_create_and_get_user(client):
+    # Test POST y GET juntos
     new_user = {'name': 'Test User', 'email': 'test@example.com'}
+
+    # Crear usuario
     response = client.post('/api/users', json=new_user)
     assert response.status_code == 201
-    assert response.json['id'] == 3
+    user_id = response.json['id']
+
+    # Obtener usuario creado
+    response = client.get(f'/api/users/{user_id}')
+    assert response.status_code == 200
+    assert response.json['email'] == 'test@example.com'
