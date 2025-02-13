@@ -4,13 +4,16 @@ from app import app
 
 @pytest.fixture
 def client():
-    # Configurar base de datos en memoria para tests
     app.config['DATABASE'] = ':memory:'
     with app.test_client() as client:
         with app.app_context():
             conn = sqlite3.connect(':memory:')
-            with app.open_resource('schema.sql') as f:
+            with open('schema.sql') as f:
                 conn.executescript(f.read().decode('utf-8'))
+            # Insertar datos de prueba
+            conn.execute("INSERT INTO users (name, email) VALUES ('User1', 'user1@example.com')")
+            conn.execute("INSERT INTO users (name, email) VALUES ('User2', 'user2@example.com')")
+            conn.commit()
             conn.close()
         yield client
 
