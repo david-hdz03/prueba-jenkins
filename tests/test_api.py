@@ -9,7 +9,7 @@ def client():
         with app.app_context():
             conn = sqlite3.connect(':memory:')
             with open('schema.sql') as f:
-                conn.executescript(f.read().decode('utf-8'))
+                conn.executescript(f.read()) 
             # Insertar datos de prueba
             conn.execute("INSERT INTO users (name, email) VALUES ('User1', 'user1@example.com')")
             conn.execute("INSERT INTO users (name, email) VALUES ('User2', 'user2@example.com')")
