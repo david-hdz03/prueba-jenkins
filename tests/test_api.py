@@ -1,6 +1,7 @@
 import pytest
 import sqlite3
 import os
+from flask import g
 from app import app, get_db
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
