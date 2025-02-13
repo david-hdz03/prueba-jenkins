@@ -1,6 +1,8 @@
 import pytest
 import sqlite3
 from app import app
+from flask import Flask, g
+
 
 @pytest.fixture
 def client():
