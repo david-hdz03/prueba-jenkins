@@ -3,20 +3,20 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-app.config['DATABASE'] = 'database.db'
+app.config['DATABASE'] = ':memory:'
 
 # Conexión a la base de datos
 def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(app.config['DATABASE'])
-        db.row_factory = sqlite3.Row
-    return db
+    if 'db' not in g:
+        g.db = sqlite3.connect(app.config['DATABASE'])
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
 
 # Cerrar conexión al finalizar
 @app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
+def close_db(error):
+    db = g.pop('db', None)
     if db is not None:
         db.close()
 
