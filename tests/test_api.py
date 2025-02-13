@@ -1,36 +1,34 @@
 import pytest
 import sqlite3
 import os
-from flask import g
-from app import app, get_db
+from flask import g  # Importa g
+from app import app, get_db  # Importamos get_db para reutilizar la conexión
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA_PATH = os.path.join(BASE_DIR, 'schema.sql')
 
 @pytest.fixture
 def client():
-    app.config['DATABASE'] = ':memory:'  # Fuerza el uso de base en memoria
+    app.config['DATABASE'] = ':memory:'  # Usa la base de datos en memoria
 
     with app.test_client() as client:
         with app.app_context():
-            conn = sqlite3.connect(':memory:')
-            conn.row_factory = sqlite3.Row
+            # Obtener la conexión a la BD desde Flask (en lugar de crear una nueva)
+            db = get_db()
 
+            # Cargar el esquema
             with open(SCHEMA_PATH, 'r') as f:
-                conn.executescript(f.read())
+                db.cursor().executescript(f.read())
 
             # Insertar datos de prueba
-            conn.execute("INSERT INTO users (name, email) VALUES ('User1', 'user1@example.com')")
-            conn.execute("INSERT INTO users (name, email) VALUES ('User2', 'user2@example.com')")
-            conn.commit()
-
-            # Sobrescribe la conexión de `get_db()`
-            g._database = conn  
+            db.execute("INSERT INTO users (name, email) VALUES ('User1', 'user1@example.com')")
+            db.execute("INSERT INTO users (name, email) VALUES ('User2', 'user2@example.com')")
+            db.commit()
 
         yield client  # Devuelve el cliente de pruebas
 
         with app.app_context():
-            conn.close()
+            db.close()  # Cerrar conexión después de los tests
 
 def test_get_users(client):
     response = client.get('/api/users')
