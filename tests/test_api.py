@@ -1,6 +1,10 @@
 import pytest
 import sqlite3
+import os
 from app import app
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Sube un nivel desde tests/
+SCHEMA_PATH = os.path.join(BASE_DIR, 'schema.sql')
 
 @pytest.fixture
 def client():
@@ -8,7 +12,7 @@ def client():
     with app.test_client() as client:
         with app.app_context():
             conn = sqlite3.connect(':memory:')
-            with open('schema.sql') as f:
+            with open(SCHEMA_PATH, 'r') as f:
                 conn.executescript(f.read()) 
             # Insertar datos de prueba
             conn.execute("INSERT INTO users (name, email) VALUES ('User1', 'user1@example.com')")
