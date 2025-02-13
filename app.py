@@ -55,3 +55,5 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['DATABASE']):
         init_db()
     app.run(debug=True)
+
+#Comentario de prueba
